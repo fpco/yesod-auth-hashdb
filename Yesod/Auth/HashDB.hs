@@ -260,9 +260,8 @@ upgradePasswordHash strength u = do
 --   soon as possible.  They can be upgraded using 'upgradePasswordHash',
 --   or by insisting that users set new passwords.
 validateUser :: ( YesodPersist yesod
-                , b ~ YesodPersistBackend yesod
-                , PersistMonadBackend (b (HandlerT yesod IO)) ~ PersistEntityBackend user
-                , PersistUnique (b (HandlerT yesod IO))
+                , PersistEntityBackend user ~ YesodPersistBackend yesod
+                , PersistUnique (PersistEntityBackend user)
                 , PersistEntity user
                 , HashDBUser    user
                 ) => 
@@ -296,9 +295,8 @@ login = PluginR "hashdb" ["login"]
 --   username (whatever it might be) to unique user ID.
 postLoginR :: ( YesodAuth y, YesodPersist y
               , HashDBUser user, PersistEntity user
-              , b ~ YesodPersistBackend y
-              , PersistMonadBackend (b (HandlerT y IO)) ~ PersistEntityBackend user
-              , PersistUnique (b (HandlerT y IO))
+              , PersistEntityBackend user ~ YesodPersistBackend y
+              , PersistUnique (YesodPersistBackend y)
               )
            => (Text -> Maybe (Unique user))
            -> HandlerT Auth (HandlerT y IO) TypedContent
@@ -321,9 +319,8 @@ postLoginR uniq = do
 getAuthIdHashDB :: ( YesodAuth master, YesodPersist master
                    , HashDBUser user, PersistEntity user
                    , Key user ~ AuthId master
-                   , b ~ YesodPersistBackend master
-                   , PersistMonadBackend (b (HandlerT master IO)) ~ PersistEntityBackend user
-                   , PersistUnique (b (HandlerT master IO))
+                   , PersistUnique (PersistEntityBackend user)
+                   , YesodPersistBackend master ~ PersistEntityBackend user
                    )
                 => (AuthRoute -> Route master)   -- ^ your site's Auth Route
                 -> (Text -> Maybe (Unique user)) -- ^ gets user ID
@@ -350,9 +347,9 @@ getAuthIdHashDB authR uniq creds = do
 authHashDB :: ( YesodAuth m, YesodPersist m
               , HashDBUser user
               , PersistEntity user
-              , b ~ YesodPersistBackend m
-              , PersistMonadBackend (b (HandlerT m IO)) ~ PersistEntityBackend user
-              , PersistUnique (b (HandlerT m IO)))
+              , PersistEntityBackend user ~ YesodPersistBackend m
+              , PersistUnique (YesodPersistBackend m)
+              )
            => (Text -> Maybe (Unique user)) -> AuthPlugin m
 authHashDB uniq = AuthPlugin "hashdb" dispatch $ \tm -> toWidget [hamlet|
 $newline never

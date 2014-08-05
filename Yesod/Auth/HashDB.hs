@@ -388,7 +388,7 @@ $newline never
 ----------------------------------------------------------------
 
 -- | Generate data base instances for a valid user
-share [mkPersist sqlSettings, mkMigrate "migrateUsers"]
+share [mkPersist sqlSettings { mpsGeneric = True }, mkMigrate "migrateUsers"]
          [persistUpperCase|
 User
     username Text Eq
